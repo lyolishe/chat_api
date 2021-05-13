@@ -1,0 +1,8 @@
+{
+  "runtimeOptions": {
+    "additionalProbingPaths": [
+      "/Users/buttsurfer/.dotnet/store/|arch|/|tfm|",
+      "/Users/buttsurfer/.nuget/packages"
+    ]
+  }
+}
