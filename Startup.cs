@@ -1,3 +1,4 @@
+using System.Text;
 using chat_api.Hubs;
 using chat_api.Models;
 using chat_api.Services;
@@ -28,24 +29,24 @@ namespace chat_api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
-            services.AddSignalR();
-            services.AddAuthentication(options =>
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
                 {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-                {
-                    options.RequireHttpsMetadata = true;
-                    options.SaveToken = true;
+                    options.RequireHttpsMetadata = false;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidIssuer = "JWPAPI",
-                        ValidAudience = "SampleAudience",
+                        ValidateIssuer = true,
+                        ValidIssuer = AuthOptions.ISSUER,
+                        ValidateAudience = true,
+                        ValidAudience = AuthOptions.AUDIENCE,
+                        ValidateLifetime = false,
+                        IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(),
+                        // валидация ключа безопасности
+                        ValidateIssuerSigningKey = true,
                     };
                 });
+            services.AddControllers();
+            services.AddSignalR();
             services.Configure<DatabaseSettings>(Configuration.GetSection(nameof(DatabaseSettings)));
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<DatabaseSettings>>().Value);
             services.AddSingleton<UserService>();
@@ -64,8 +65,20 @@ namespace chat_api
             }
 
             app.UseHttpsRedirection();
-
             app.UseRouting();
+            
+            app.UseCors(x => x
+                .WithOrigins("https://localhost:3000", "https://localhost:3001")
+                .AllowCredentials()
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+            );
+            app.UseCookiePolicy(new CookiePolicyOptions
+            {
+                MinimumSameSitePolicy = SameSiteMode.Strict,
+                HttpOnly = HttpOnlyPolicy.Always,
+                Secure = CookieSecurePolicy.Always
+            });
 
             app.Use(async (context, next) =>
             {
@@ -83,21 +96,6 @@ namespace chat_api
                 endpoints.MapControllers();
                 endpoints.MapHub<ChatHub>("/chatsocket");
             });
-            
-            app.UseCors(x => x
-                .WithOrigins("https://localhost:3000", "https://localhost:3001")
-                .AllowCredentials()
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-            );
-            
-            app.UseCookiePolicy(new CookiePolicyOptions
-            {
-                MinimumSameSitePolicy = SameSiteMode.Strict,
-                HttpOnly = HttpOnlyPolicy.Always,
-                Secure = CookieSecurePolicy.Always
-            });
-            
         }
     }
 }

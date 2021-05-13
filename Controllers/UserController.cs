@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using chat_api.Models;
 using chat_api.Services;
@@ -43,7 +44,8 @@ namespace chat_api.Controllers
 
             return user;
         }
-
+        
+        [AllowAnonymous]
         [HttpPost]
         public ActionResult<User> Create(User user)
         {
@@ -55,7 +57,7 @@ namespace chat_api.Controllers
         [AllowAnonymous]
         [Route("Login")]
         [HttpPost]
-        public ActionResult Login(LoginViewModel loginViewModel)
+        public ActionResult<string> Login(LoginViewModel loginViewModel)
         {
             var users = _userService.Get();
             
@@ -65,40 +67,41 @@ namespace chat_api.Controllers
             {
                 return new NotFoundResult();
             }
-            
+
+            var now = DateTime.Now;
+
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, Guid.NewGuid().ToString()),
+                new Claim(ClaimsIdentity.DefaultNameClaimType, result.Login),
+                new Claim(ClaimsIdentity.DefaultRoleClaimType, "user"),
                 new Claim("Id", result.Id),
-                new Claim("Login", result.Login),
+                new Claim("Name", result.DisplayName?? result.Login)
             };
 
+            var claimsIdentity = new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
+
             var jwt = new JwtSecurityToken(
-                issuer: "JWPAPI",
-                audience: "SampleAudience",
-                claims,
-                expires: DateTime.Now.Add(TimeSpan.FromMinutes(2880))
-            );
-            
+                issuer: AuthOptions.ISSUER,
+                audience: AuthOptions.AUDIENCE,
+                notBefore: now,
+                claims: claimsIdentity.Claims,
+                expires: now.Add(TimeSpan.FromMinutes(AuthOptions.LIFETIME)),
+                signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
             var token = new JwtSecurityTokenHandler().WriteToken(jwt);
             
             HttpContext.Response.Cookies.Append(
                 ".AspNetCore.Application.Id",
-                token,
-                new CookieOptions
-                {
-                    MaxAge = TimeSpan.FromMinutes(2880)
-                }
+                token
             );
             
-            return new OkResult();
+            return Ok(token);
         }
         
         [Route("Me")]
         [HttpGet]
         public ActionResult<User> Me()
         {
-            var user = User.Identity;
+            var user = User.Identity?.Name;
 
             return Ok(user);
         }
