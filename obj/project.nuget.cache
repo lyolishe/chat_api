@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "0G5wcZdnvAmP8/E30ldXB1Fu4e6/gW8edHOXVEU465s1LfA6pm7Rc2BSpsC0zl5wt1POsmZoziIflngWPk5p2w==",
+  "dgSpecHash": "AjKw/0Fwgj19i+UERp5eTLGyCUZbu0w9Upt+HKOpCEUsDiZPLn0BELdqq6yj3iQYAJdk2sd7Ge0dfplwSJ6HLg==",
   "success": true,
-  "projectFilePath": "/Users/buttsurfer/Desktop/projects/chat_api/chat_api.csproj",
+  "projectFilePath": "/Users/buttsurfer/Desktop/projects/my/chat_api/chat_api.csproj",
   "expectedPackageFiles": [
     "/Users/buttsurfer/.nuget/packages/dnsclient/1.4.0/dnsclient.1.4.0.nupkg.sha512",
     "/Users/buttsurfer/.nuget/packages/microsoft.aspnetcore.authentication.jwtbearer/5.0.6/microsoft.aspnetcore.authentication.jwtbearer.5.0.6.nupkg.sha512",

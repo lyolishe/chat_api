@@ -3,71 +3,36 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using chat_api.Models;
 using chat_api.Services;
 using chat_api.ViewModels;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.IdentityModel.Tokens;
 
 namespace chat_api.Controllers
 {
-    [Route("api/user")]
+    [Microsoft.AspNetCore.Components.Route("api/auth")]
     [ApiController]
-    [Authorize]
-    public class UserController : ControllerBase
+    public class AuthController: ControllerBase
     {
         private readonly UserService _userService;
 
-        public UserController(UserService userService)
+        public AuthController(UserService userService)
         {
             _userService = userService;
         }
 
-        [HttpGet]
-        public ActionResult<List<User>> Get() => _userService.Get();
-
-        [HttpGet("id")]
-        public ActionResult<User> Get(string id)
-        {
-            var user = _userService.Get(id);
-
-            if (user == null)
-            {
-                return new NotFoundResult();
-            }
-
-            return user;
-        }
-        
-        [AllowAnonymous]
-        [HttpPost]
-        public ActionResult<User> Create(User user)
-        {
-            var newUser = _userService.Create(user);
-
-            return new CreatedResult("GetUser", newUser);
-        }
-        
-        [AllowAnonymous]
-        [Route("Login")]
-        [HttpPost]
-        public ActionResult<string> Login(LoginViewModel loginViewModel)
+        private string GetIdentity(LoginViewModel creds)
         {
             var users = _userService.Get();
             
-            var result = users.FirstOrDefault(user => user.Login == loginViewModel.login && user.Password == loginViewModel.password);
+            var result = users.FirstOrDefault(user => user.Login == creds.login && user.Password == creds.password);
 
             if (result == null)
-            {
-                return new NotFoundResult();
-            }
-
+                return null;
+            
             var now = DateTime.Now;
 
             var claims = new List<Claim>
@@ -87,7 +52,22 @@ namespace chat_api.Controllers
                 claims: claimsIdentity.Claims,
                 expires: now.Add(TimeSpan.FromMinutes(AuthOptions.LIFETIME)),
                 signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
-            var token = new JwtSecurityTokenHandler().WriteToken(jwt);
+            
+            return new JwtSecurityTokenHandler().WriteToken(jwt);
+
+        }
+        
+        [Route("login")]
+        [HttpPost]
+        public ActionResult<string> Login(LoginViewModel loginViewModel)
+        {
+            var token = GetIdentity(loginViewModel);
+            
+            if (token == null)
+            {
+                return new NotFoundResult();
+            }
+
             
             HttpContext.Response.Cookies.Append(
                 ".AspNetCore.Application.Id",
@@ -97,13 +77,30 @@ namespace chat_api.Controllers
             return Ok(token);
         }
         
-        [Route("Me")]
+        [Route("me")]
+        [Authorize]
         [HttpGet]
         public ActionResult<User> Me()
         {
             var user = User.Identity?.Name;
 
             return Ok(user);
+        }
+
+        [Route("logout")]
+        [HttpPost]
+        public ActionResult Logout()
+        {
+            HttpContext.Response.Cookies.Append(
+                ".AspNetCore.Application.Id",
+                "",
+                new CookieOptions
+                {
+                    Expires = DateTime.Now.AddDays(-1)
+                }
+            );
+
+            return Ok();
         }
     }
 }

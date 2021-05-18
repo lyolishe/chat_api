@@ -1010,11 +1010,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/buttsurfer/Desktop/projects/chat_api/chat_api.csproj",
+      "projectUniqueName": "/Users/buttsurfer/Desktop/projects/my/chat_api/chat_api.csproj",
       "projectName": "chat_api",
-      "projectPath": "/Users/buttsurfer/Desktop/projects/chat_api/chat_api.csproj",
+      "projectPath": "/Users/buttsurfer/Desktop/projects/my/chat_api/chat_api.csproj",
       "packagesPath": "/Users/buttsurfer/.nuget/packages/",
-      "outputPath": "/Users/buttsurfer/Desktop/projects/chat_api/obj/",
+      "outputPath": "/Users/buttsurfer/Desktop/projects/my/chat_api/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/buttsurfer/.nuget/NuGet/NuGet.Config"
