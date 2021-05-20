@@ -37,10 +37,12 @@ namespace chat_api.Controllers
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, result.Login),
+                new Claim(ClaimsIdentity.DefaultNameClaimType, result.Id),
                 new Claim(ClaimsIdentity.DefaultRoleClaimType, "user"),
                 new Claim("Id", result.Id),
-                new Claim("Name", result.DisplayName?? result.Login)
+                new Claim("displayName", result.DisplayName ?? ""),
+                new Claim("login", result.Login),
+                new Claim("phone",result.Phone?? "")
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
@@ -82,8 +84,10 @@ namespace chat_api.Controllers
         [HttpGet]
         public ActionResult<User> Me()
         {
-            var user = User.Identity?.Name;
+            var userId = User.Identity.Name;
 
+            var user = _userService.Get(userId);
+            
             return Ok(user);
         }
 
