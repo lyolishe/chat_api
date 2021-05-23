@@ -68,14 +68,14 @@ namespace chat_api
             app.UseRouting();
             
             app.UseCors(x => x
-                .WithOrigins("https://localhost:3000", "https://localhost:3001")
+                .WithOrigins("http://localhost:3000", "http://localhost:3001")
                 .AllowCredentials()
                 .AllowAnyMethod()
                 .AllowAnyHeader()
             );
             app.UseCookiePolicy(new CookiePolicyOptions
             {
-                MinimumSameSitePolicy = SameSiteMode.Strict,
+                MinimumSameSitePolicy = SameSiteMode.None,
                 HttpOnly = HttpOnlyPolicy.Always,
                 Secure = CookieSecurePolicy.Always
             });
@@ -85,7 +85,8 @@ namespace chat_api
                 var token = context.Request.Cookies[".AspNetCore.Application.Id"];
                 if (!string.IsNullOrEmpty(token))
                     context.Request.Headers.Add("Authorization", "Bearer " + token);
- 
+                
+                //context.Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:3000");
                 await next();
             });
             app.UseAuthentication();

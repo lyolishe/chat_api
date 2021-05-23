@@ -13,7 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace chat_api.Controllers
 {
-    [Microsoft.AspNetCore.Components.Route("api/auth")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthController: ControllerBase
     {
